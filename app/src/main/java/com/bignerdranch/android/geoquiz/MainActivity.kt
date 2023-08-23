@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.bignerdranch.android.geoquiz.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
@@ -13,14 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private val questionBank = listOf(
-        Question (R.string.question_australia, true),
-        Question (R.string.question_oceans, true),
-        Question (R.string.question_mideast, false),
-        Question (R.string.question_africa, false),
-        Question (R.string.question_americas, true),
-        Question (R.string.question_asia, true))
-    private var currentIndex = 0
+    private val quizViewModel: QuizViewModel by viewModels()
     private var currentScore = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,29 +23,28 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.trueButton.setOnClickListener {view: View ->
+        binding.trueButton.setOnClickListener { view: View ->
             checkAnswer(true)
         }
 
-        binding.falseButton.setOnClickListener {view: View ->
+        binding.falseButton.setOnClickListener { view: View ->
             checkAnswer(false)
         }
 
         binding.previousButton.setOnClickListener {
-            currentIndex = (currentIndex - 1) % questionBank.size
-            if (currentIndex < 0) { currentIndex = questionBank.lastIndex}
-            questionAnswered(currentIndex)
+            quizViewModel.moveToPrevious()
+            questionAnswered()
             updateQuestion()
         }
 
         binding.nextButton.setOnClickListener {
-            currentIndex = (currentIndex + 1) % questionBank.size
-            questionAnswered(currentIndex)
+            quizViewModel.moveToNext()
+            questionAnswered()
             updateQuestion()
         }
 
         binding.questionTextView.setOnClickListener {
-            currentIndex = (currentIndex + 1) % questionBank.size
+            quizViewModel.moveToNext()
             updateQuestion()
         }
 
@@ -84,15 +77,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateQuestion() {
-        val questionTextResId = questionBank[currentIndex].textResId
+        val questionTextResId = quizViewModel.currentQuestionText
         binding.questionTextView.setText(questionTextResId)
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
         binding.trueButton.isEnabled = false
         binding.falseButton.isEnabled = false
-        questionBank[currentIndex].completed = true
-        val correctAnswer = questionBank[currentIndex].answer
+        quizViewModel.questionComplete()
+        val correctAnswer = quizViewModel.currentQuestionAnswer
         val messageResId = if (userAnswer == correctAnswer) {
             currentScore++
             R.string.correct
@@ -109,8 +102,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun calculateScore() {
-        if (currentIndex == 5) {
-            var score = currentScore*100/questionBank.size
+        if (quizViewModel.currentQuestionIndex == 5) {
+            var score = currentScore * 100 / quizViewModel.questionBankLength
             val message = getString(R.string.toast_score, score)
             val toast = Toast.makeText(this, message, Toast.LENGTH_SHORT)
             toast.show()
@@ -119,8 +112,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun questionAnswered(index:Int){
-        val isQuestionAnswered = questionBank[index].completed
+    private fun questionAnswered() {
+        val isQuestionAnswered = quizViewModel.currentQuestionComplete
         binding.trueButton.isEnabled = !isQuestionAnswered
         binding.falseButton.isEnabled = !isQuestionAnswered
 
