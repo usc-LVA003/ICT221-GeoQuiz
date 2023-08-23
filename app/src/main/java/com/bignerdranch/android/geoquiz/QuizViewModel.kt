@@ -22,7 +22,7 @@ class QuizViewModel : ViewModel() {
     val currentQuestionText: Int
         get() = questionBank[currentIndex].textResId
 
-    val currentQuestionComplete: Boolean
+    var currentQuestionComplete: Boolean = false
         get() = questionBank[currentIndex].completed
 
     val currentQuestionIndex: Int

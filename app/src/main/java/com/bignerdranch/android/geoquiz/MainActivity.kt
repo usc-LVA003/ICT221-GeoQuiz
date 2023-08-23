@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.bignerdranch.android.geoquiz.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
@@ -14,15 +13,21 @@ import com.google.android.material.snackbar.Snackbar
 private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private val quizViewModel: QuizViewModel by viewModels()
+    private val questionBank = listOf(
+        Question (R.string.question_australia, true),
+        Question (R.string.question_oceans, true),
+        Question (R.string.question_mideast, false),
+        Question (R.string.question_africa, false),
+        Question (R.string.question_americas, true),
+        Question (R.string.question_asia, true))
+    private var currentIndex = 0
     private var currentScore = 0
-    private val currentIndex = quizViewModel.currentQuestionIndex
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate(Bundle?) called")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        Log.d(TAG, "Got a QuizViewModel: $quizViewModel")
 
         binding.trueButton.setOnClickListener {view: View ->
             checkAnswer(true)
@@ -33,18 +38,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.previousButton.setOnClickListener {
-            quizViewModel.moveToPrevious()
+            currentIndex = (currentIndex - 1) % questionBank.size
+            if (currentIndex < 0) { currentIndex = questionBank.lastIndex}
             questionAnswered(currentIndex)
             updateQuestion()
         }
 
         binding.nextButton.setOnClickListener {
-            quizViewModel.moveToNext()
+            currentIndex = (currentIndex + 1) % questionBank.size
             questionAnswered(currentIndex)
             updateQuestion()
         }
 
         binding.questionTextView.setOnClickListener {
+            currentIndex = (currentIndex + 1) % questionBank.size
             updateQuestion()
         }
 
@@ -77,15 +84,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateQuestion() {
-        val questionTextResId = quizViewModel.currentQuestionText
+        val questionTextResId = questionBank[currentIndex].textResId
         binding.questionTextView.setText(questionTextResId)
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
         binding.trueButton.isEnabled = false
         binding.falseButton.isEnabled = false
-        quizViewModel. = true
-        val correctAnswer = quizViewModel.currentQuestionAnswer
+        questionBank[currentIndex].completed = true
+        val correctAnswer = questionBank[currentIndex].answer
         val messageResId = if (userAnswer == correctAnswer) {
             currentScore++
             R.string.correct
@@ -112,8 +119,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun questionAnswered(){
-        val isQuestionAnswered = quizViewModel.currentQuestionComplete
+    private fun questionAnswered(index:Int){
+        val isQuestionAnswered = questionBank[index].completed
         binding.trueButton.isEnabled = !isQuestionAnswered
         binding.falseButton.isEnabled = !isQuestionAnswered
 
