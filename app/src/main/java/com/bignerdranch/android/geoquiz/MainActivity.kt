@@ -1,6 +1,7 @@
 package com.bignerdranch.android.geoquiz
 
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -41,6 +42,13 @@ class MainActivity : AppCompatActivity() {
             quizViewModel.moveToNext()
             questionAnswered()
             updateQuestion()
+        }
+
+        binding.cheatButton.setOnClickListener {
+            // Start CheatActivity
+            val answerIsTrue = quizViewModel.currentQuestionAnswer
+            val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
+            startActivity(intent)
         }
 
         binding.questionTextView.setOnClickListener {

@@ -1,10 +1,9 @@
 package com.bignerdranch.android.geoquiz
 
-import android.util.Log
+
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 
-private const val TAG = "QuizViewModel"
 const val CURRENT_INDEX_KEY = "CURRENT_INDEX_KEY"
 
 class QuizViewModel (private val savedStateHandle: SavedStateHandle) : ViewModel() {
@@ -41,7 +40,7 @@ class QuizViewModel (private val savedStateHandle: SavedStateHandle) : ViewModel
     }
 
     fun moveToNext() {
-        currentIndex = (currentIndex + 1) % questionBank.size
+    currentIndex = (currentIndex + 1) % questionBank.size
     }
 
     fun moveToPrevious() {
