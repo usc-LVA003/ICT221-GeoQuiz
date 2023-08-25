@@ -5,7 +5,6 @@ import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -13,15 +12,15 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bignerdranch.android.geoquiz.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
 
-
 private const val TAG = "MainActivity"
+
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var playerCheated: BooleanArray
     private val quizViewModel: QuizViewModel by viewModels()
     private val cheatLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        // Handle the result
         if (result.resultCode == Activity.RESULT_OK) {
             quizViewModel.isCheater =
                 result.data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
@@ -32,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate(Bundle?) called")
         binding = ActivityMainBinding.inflate(layoutInflater)
+        playerCheated = BooleanArray(quizViewModel.questionBankLength)
         setContentView(binding.root)
 
         binding.trueButton.setOnClickListener { view: View ->
@@ -55,7 +55,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.cheatButton.setOnClickListener {
-            // Start CheatActivity
             val answerIsTrue = quizViewModel.currentQuestionAnswer
             val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
             cheatLauncher.launch(intent)
@@ -104,14 +103,18 @@ class MainActivity : AppCompatActivity() {
         binding.falseButton.isEnabled = false
         quizViewModel.questionComplete()
         val correctAnswer = quizViewModel.currentQuestionAnswer
+        if (quizViewModel.isCheater) {
+            playerCheated[quizViewModel.currentQuestionIndex] = true
+        }
         val messageResId = when {
-            quizViewModel.isCheater -> R.string.judgement_toast
+            playerCheated[quizViewModel.currentQuestionIndex] -> R.string.judgement_toast
             userAnswer == correctAnswer -> R.string.correct_toast
             else -> R.string.incorrect_toast
         }
         if (userAnswer == correctAnswer) {
             quizViewModel.scoreCounterIncrease()
         }
+        playerCheated[quizViewModel.currentQuestionIndex] = false
         val linearLayout = findViewById<View>(R.id.linearLayout)
         val snackbar = Snackbar.make(linearLayout, messageResId, Snackbar.LENGTH_SHORT)
         snackbar.setAction("Dismiss") {

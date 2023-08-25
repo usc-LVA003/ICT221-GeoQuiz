@@ -8,7 +8,6 @@ const val CURRENT_INDEX_KEY = "CURRENT_INDEX_KEY"
 const val IS_CHEATER_KEY = "IS_CHEATER_KEY"
 
 class QuizViewModel (private val savedStateHandle: SavedStateHandle) : ViewModel() {
-
     private val questionBank = listOf(
         Question (R.string.question_australia, true),
         Question (R.string.question_oceans, true),
